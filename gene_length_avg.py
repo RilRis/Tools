@@ -2,7 +2,6 @@
 
 import argparse
 
-
 #FUNCTIONS
 def arg_parser():
       """ Defines named arguments, provides the --help/-h flag, and allows the option to use required arguments """
@@ -30,12 +29,18 @@ def filter_for_genes(gff):
 def calc_gene_lengths(list_of_lines):
     gene_dict = {}
     for entry in list_of_lines:
-        seqname = entry.split('\t')[0]
-        start = int(entry.split('\t')[3])
-        end = int(entry.split('\t')[4])
+        #Split the row's contents to get the values from specific columns
+        field_list = entry.split('\t')
+        seqname = field_list[0]
+        start = int(field_list[3])
+        end = int(field_list[4])
+
+        #Calculate the length of the gene using the beginning and end coordinates
         gene_len = (abs(end - start))
-        if 'ID=' in entry.split('\t')[8]:
-            notes = entry.split('\t')[8]
+
+        #Try to find the gene ID in the last column (if absent, use the chromesome and coordinates to act as an ID)
+        if field_list[8].startswith('ID='):
+            notes = field_list[8]
             gene_id = notes.split(';', 2)[0].split('=')[1]
         else:
             gene_id = f'{seqname}:{start}-{end}'
