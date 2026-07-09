@@ -1,10 +1,10 @@
 # Tools
 
-## extract_contig.py
+## extract_seq.py
 ### Summary
 Retrieves one entry (or part of an entry) from a large fasta file.
 
-## rotate_contig.sh
+## rotate_contig.py
 ### Summary
 Rotates a circular DNA sequence to start at a specified position.
 
