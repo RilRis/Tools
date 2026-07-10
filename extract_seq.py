@@ -31,12 +31,11 @@ def parse_fasta(fasta_file):
         if entry:
             lines = entry.splitlines()
             header = re.sub(r'^>', '', lines[0])
-            sequence = '\n'.join(lines[1:])
+            sequence = ''.join(lines[1:])
             key = header.split(' ')[0]
             val = [header, sequence]
 
             if key in seq_dict:
-                sys.tracebacklimit = 0
                 raise Exception(f'FASTA file contains non-unique sequence ID (\"{key}\")')
             
             seq_dict[key] = val
@@ -44,31 +43,35 @@ def parse_fasta(fasta_file):
     return(seq_dict)
 
 
-def insert_newlines(string, every):
-    """ Splits the sequence into 60 characters per line (for printing purposes) """
+def insert_newlines(string, every = 60):
+    """ Splits long strings into 60 characters per line (for printing purposes) """
+    # Remove any existing line breaks
+    string = re.sub('\n', '', string)
+    
+    # Now insert a line break after every x number of characters
     lines = []
     for i in range(0, len(string), every):
         lines.append(string[i:i+every])
     return '\n'.join(lines)
 
 
-def return_seq(seqence_dict, seq_id, fasta_file, range):
+def return_seq(seqence_dict, seq_id, fasta_file, seq_range = ""):
     """ searches the sequence dictionary for an entry where the key matches the sequence ID, then returns the header and sequence """
     # Find the entry with the matching seqid and extract that sequence
     if seq_id in seqence_dict:
         entry = seqence_dict[seq_id]
         header = f'>{entry[0]}'
+        # Make sure sequence doesn't contain newlines (it shouldn't, though)
         sequence = re.sub('\n', '', entry[1])
     else:
-        sys.tracebacklimit = 0
         raise Exception(f'{seq_id} not found in {os.path.basename(fasta_file)}')
     
-    # If a bp range argument is provided..     
-    if args.range:
+    # If a the bp/aa range argument is provided..     
+    if seq_range:
         
         # Figure out first or last position if part of range left empty
-        first_pos = args.range.split(':')[0] or 1
-        last_pos = args.range.split(':')[1] or len(sequence)
+        first_pos = seq_range.split(':')[0] or 1
+        last_pos = seq_range.split(':')[1] or len(sequence)
         if int(last_pos) > len(sequence):
             last_pos = len(sequence)
         
@@ -89,14 +92,13 @@ def remove_seq(seqence_dict, seq_id, fasta_file):
     """ searches the sequence dictionary for an entry where the key matches the sequence ID, then returns the header and sequence for each entry EXCEPT the matching one """
     # Make sure the specified sequence ID is actually present in file
     if seq_id not in seqence_dict:
-        sys.tracebacklimit = 0
         raise Exception(f'{seq_id} not found in {os.path.basename(fasta_file)}')
     
     # Print the full header and sequence for each entry except the one specified
     for key,val in seqence_dict.items():
         if key != seq_id:
             header = f'>{val[0]}'
-            sequence = re.sub('\n', '', val[1])
+            sequence = val[1]
 
             print(header)
             print(insert_newlines(sequence, 60))
@@ -106,6 +108,8 @@ def remove_seq(seqence_dict, seq_id, fasta_file):
 
 #Main
 if __name__ == "__main__":
+    sys.tracebacklimit = 0
+    
     # Parse the arguments
     args = arg_parser() 
     
